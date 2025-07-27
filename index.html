@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة المافيا - Mafia Game</title>
+    <link rel="stylesheet" href="styley.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🕵️ لعبة المافيا 🎭</h1>
+            <p class="subtitle">العب مع أصدقائك - كل شخص من هاتفه!</p>
+        </div>
+
+        <div class="game-container">
+            <!-- Room Setup -->
+            <div id="roomSetup">
+                <div class="section-title">إنشاء أو الانضمام لغرفة</div>
+                
+                <div class="room-section">
+                    <h3 style="color: #48dbfb; margin-bottom: 15px;">إنشاء غرفة جديدة</h3>
+                    <div class="input-group">
+                        <label for="hostName">اسمك:</label>
+                        <input type="text" id="hostName" placeholder="أدخل اسمك">
+                    </div>
+                    <div class="input-group">
+                        <label for="playerCount">عدد اللاعبين (4-12):</label>
+                        <input type="number" id="playerCount" min="4" max="12" value="6">
+                    </div>
+                    <button class="btn btn-primary" onclick="createRoom()">إنشاء غرفة</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: 1px solid rgba(255,255,255,0.2);">
+
+                <div class="room-section">
+                    <h3 style="color: #feca57; margin-bottom: 15px;">الانضمام لغرفة موجودة</h3>
+                    <div class="input-group">
+                        <label for="playerName">اسمك:</label>
+                        <input type="text" id="playerName" placeholder="أدخل اسمك">
+                    </div>
+                    <div class="input-group">
+                        <label for="roomCode">كود الغرفة:</label>
+                        <input type="text" id="roomCode" placeholder="أدخل كود الغرفة">
+                    </div>
+                    <button class="btn btn-success" onclick="joinRoom()">الانضمام للغرفة</button>
+                </div>
+
+                <div id="alertContainer"></div>
+            </div>
+
+            <!-- Waiting Room -->
+            <div id="waitingRoom" class="hidden">
+                <div class="room-info">
+                    <h3>غرفة اللعبة</h3>
+                    <div class="room-code" id="displayRoomCode"></div>
+                    <p>شارك هذا الكود مع أصدقائك للانضمام</p>
+                </div>
+
+                <div class="section-title">اللاعبون في الغرفة (<span id="playerCountDisplay">0</span>/<span id="maxPlayersDisplay">6</span>)</div>
+                <div id="waitingPlayersList" class="players-list"></div>
+
+                <div class="text-center">
+                    <button class="btn btn-primary" id="startGameBtn" onclick="startGame()" disabled>بدء اللعبة</button>
+                    <button class="btn btn-success" onclick="addDemoPlayers()">إضافة لاعبين تجريبيين</button>
+                    <button class="btn btn-danger" onclick="leaveRoom()">مغادرة الغرفة</button>
+                </div>
+            </div>
+
+            <!-- Role Reveal -->
+            <div id="roleReveal" class="hidden">
+                <div class="section-title">دورك في اللعبة</div>
+                <div id="roleDisplay" class="role-reveal">
+                    <!-- Role will be displayed here -->
+                </div>
+                <button class="btn btn-primary" onclick="acknowledgeRole()">فهمت دوري</button>
+            </div>
+
+            <!-- Game Screen -->
+            <div id="gameScreen" class="hidden">
+                <div id="gamePhase" class="game-phase day">
+                    اليوم الأول - وقت النقاش
+                </div>
+
+                <div class="section-title">اللاعبون الأحياء</div>
+                <div id="gamePlayersList" class="players-list"></div>
+
+                <!-- Day Actions -->
+                <div id="dayActions" class="action-panel">
+                    <button class="btn btn-danger" onclick="startVoting()">بدء التصويت</button>
+                </div>
+
+                <!-- Voting Panel -->
+                <div id="votingPanel" class="action-panel hidden">
+                    <h3>🗳️ التصويت</h3>
+                    <p>اختر من تريد إخراجه من اللعبة (اضغط على بطاقة اللاعب):</p>
+                    <div id="votingResults"></div>
+                    <button class="btn btn-danger" onclick="executeVoting()">تنفيذ التصويت</button>
+                </div>
+
+                <!-- Night Actions -->
+                <div id="nightActions" class="action-panel hidden">
+                    <div id="mafiaPanel" class="hidden">
+                        <h3 style="color: #ff416c;">🔫 أنت من المافيا</h3>
+                        <p>اختر من تريد قتله الليلة (اضغط على بطاقة اللاعب):</p>
+                        <div id="mafiaMembers"></div>
+                        <button class="btn btn-danger" onclick="confirmMafiaAction()">تأكيد القتل</button>
+                    </div>
+
+                    <div id="doctorPanel" class="hidden">
+                        <h3 style="color: #42e695;">👨‍⚕️ أنت الطبيب</h3>
+                        <p>اختر من تريد حمايته الليلة (اضغط على بطاقة اللاعب):</p>
+                        <button class="btn btn-success" onclick="confirmDoctorAction()">تأكيد الحماية</button>
+                    </div>
+
+                    <div id="detectivePanel" class="hidden">
+                        <h3 style="color: #3742fa;">🕵️ أنت المحقق</h3>
+                        <p>اختر من تريد التحقق من هويته (اضغط على بطاقة اللاعب):</p>
+                        <div id="investigationResult" class="result-message hidden"></div>
+                        <button class="btn btn-primary" onclick="confirmDetectiveAction()">تأكيد التحقيق</button>
+                    </div>
+
+                    <div id="citizenPanel" class="hidden">
+                        <h3 style="color: #ffa726;">👤 أنت مواطن</h3>
+                        <p>انتظر حتى انتهاء الليل...</p>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button class="btn btn-primary" onclick="nextPhase()">المرحلة التالية</button>
+                    <button class="btn" onclick="resetGame()">إعادة تشغيل</button>
+                </div>
+
+                <div id="gameResult" class="result-message hidden"></div>
+            </div>
+
+            <!-- Game Rules -->
+            <div class="room-section">
+                <div class="section-title">📋 قوانين اللعبة</div>
+                <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px;">
+                    <p style="margin-bottom: 10px;"><strong>🌅 النهار:</strong> جميع اللاعبين يناقشون ويصوتون لإخراج مشتبه به</p>
+                    <p style="margin-bottom: 10px;"><strong>🌙 الليل:</strong> المافيا تختار ضحية، الطبيب يحمي، المحقق يحقق</p>
+                    <p style="margin-bottom: 10px;"><strong>🔫 المافيا:</strong> تعرف بعضها وتقتل شخصاً كل ليلة</p>
+                    <p style="margin-bottom: 10px;"><strong>👨‍⚕️ الطبيب:</strong> يحمي شخصاً واحداً كل ليلة (يمكن حماية نفسه)</p>
+                    <p style="margin-bottom: 10px;"><strong>🕵️ المحقق:</strong> يتحقق من هوية شخص واحد كل ليلة</p>
+                    <p><strong>🏆 الفوز:</strong> المواطنون يفوزون بالقضاء على المافيا، المافيا تفوز بمساواة أو تفوق عددها</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripty.js"></script>
+</body>
+</html>
